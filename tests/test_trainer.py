@@ -1,10 +1,11 @@
-from pytorch_lightning import Trainer, seed_everything
-
-from train import ToxicClassifier
-import src.data_loaders as module_data
-from torch.utils.data import DataLoader
 import json
+
+import src.data_loaders as module_data
+
 import torch
+from pytorch_lightning import seed_everything, Trainer
+from torch.utils.data import DataLoader
+from train import ToxicClassifier
 
 
 def initialize_trainer(CONFIG):
@@ -12,9 +13,7 @@ def initialize_trainer(CONFIG):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def get_instance(module, name, config, *args, **kwargs):
-        return getattr(module, config[name]["type"])(
-            *args, **config[name]["args"], **kwargs
-        )
+        return getattr(module, config[name]["type"])(*args, **config[name]["args"], **kwargs)
 
     model = ToxicClassifier(CONFIG)
     model.to(device)
@@ -39,25 +38,25 @@ def initialize_trainer(CONFIG):
     )
 
     trainer = Trainer(
-        gpus=0 if torch.cuda.is_available() else None,
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
         limit_train_batches=2,
         limit_val_batches=2,
         max_epochs=1,
     )
     trainer.fit(model, data_loader, valid_data_loader)
-    results = trainer.test(test_dataloaders=valid_data_loader)
+    results = trainer.test(dataloaders=valid_data_loader)
 
     return results
 
 
 def test_trainer():
     CONFIG = json.load(open("configs/Toxic_comment_classification_BERT.json"))
-    CONFIG["dataset"]["args"][
-        "train_csv_file"
-    ] = "tests/dummy_data/jigsaw-toxic-comment-classification-challenge/train.csv"
-    CONFIG["dataset"]["args"][
-        "test_csv_file"
-    ] = "tests/dummy_data/jigsaw-toxic-comment-classification-challenge/test.csv"
+    CONFIG["dataset"]["args"]["train_csv_file"] = (
+        "tests/dummy_data/jigsaw-toxic-comment-classification-challenge/train.csv"
+    )
+    CONFIG["dataset"]["args"]["test_csv_file"] = (
+        "tests/dummy_data/jigsaw-toxic-comment-classification-challenge/test.csv"
+    )
     CONFIG["batch_size"] = 2
 
     results = initialize_trainer(CONFIG)

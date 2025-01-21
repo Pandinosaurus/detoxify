@@ -1,16 +1,16 @@
 {
-    "name": "Jigsaw_ALBERT",
+    "name": "Jigsaw_ModernBERT",
     "n_gpu": 1,
     "batch_size": 10,
     "accumulate_grad_batches": 3,
     "loss": "binary_cross_entropy",
     "arch": {
-        "type": "ALBERT",
+        "type": "ModernBERT",
         "args": {
             "num_classes": 6,
-            "model_type": "albert-base-v2",
-            "model_name": "AlbertForSequenceClassification",
-            "tokenizer_name": "AlbertTokenizer"
+            "model_type": "answerdotai/ModernBERT-base",
+            "model_name": "ModernBertForSequenceClassification",
+            "tokenizer_name": "AutoTokenizer"
         }
     },
     "dataset": {

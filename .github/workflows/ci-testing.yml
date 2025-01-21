@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - master
+  schedule:
+    - cron: "30 7 * * *"
 
 jobs:
   pytest:
@@ -17,8 +19,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macOS-10.15, windows-2019]
-        python-version: [3.7]
+        os: [ubuntu-20.04, macos-latest, windows-2019]
+        python-version: ['3.11']
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 35
@@ -53,8 +55,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install --requirement requirements.txt --upgrade --quiet --find-links https://download.pytorch.org/whl/cpu/torch_stable.html --use-feature=2020-resolver
-        pip install --requirement tests/requirements.txt --quiet --use-feature=2020-resolver
+        pip install -e '.[dev]'
+        pip install --requirement tests/requirements.txt --quiet
         python --version
         pip --version
         pip list
@@ -62,7 +64,7 @@ jobs:
 
     - name: Tests
       run: |
-        coverage run --source src,detoxify -m py.test src tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source src,detoxify -m pytest src tests -v --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Statistics
       if: success()
